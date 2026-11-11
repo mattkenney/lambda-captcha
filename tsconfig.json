@@ -1,6 +1,6 @@
 {
-  // Type-checks the sources and the tests together. Builds use
-  // tsconfig.build.json, which emits src/ alone into dist/.
+  // Type-checks the sources and the tests together. Nothing is emitted: the
+  // package ships its TypeScript source, and consumers bundle it.
   "compilerOptions": {
     "target": "ES2022",
     "module": "commonjs",

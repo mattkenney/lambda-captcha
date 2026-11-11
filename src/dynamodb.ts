@@ -1,5 +1,4 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import type { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import type { NonceStore } from './nonce';
 
 /**
@@ -8,6 +7,12 @@ import type { NonceStore } from './nonce';
  * A separate entry point so the core package never imports the AWS SDK. The
  * SDK is a peer dependency: the Lambda Node.js runtime already provides it, so
  * bundle with `@aws-sdk/*` marked external.
+ *
+ * Even here the SDK is only loaded on the first `consume`, by a dynamic import.
+ * Bundled into an ES module, a static import of an external module becomes a
+ * top-level import of the whole bundle, which would then fail to load anywhere
+ * the SDK isn't installed (a local dev server, say), even if this store is
+ * never used.
  */
 export interface DynamoNonceStoreOptions {
   tableName: string;
@@ -34,7 +39,11 @@ export function dynamoNonceStore(options: DynamoNonceStoreOptions): NonceStore {
 
   return {
     async consume(nonce, ttlSeconds) {
-      client ??= DynamoDBDocumentClient.from(new DynamoDBClient({}));
+      const { DynamoDBDocumentClient, PutCommand } = await import('@aws-sdk/lib-dynamodb');
+      if (!client) {
+        const { DynamoDBClient } = await import('@aws-sdk/client-dynamodb');
+        client = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+      }
       const Key = key(nonce);
       const [partitionKey] = Object.keys(Key);
       try {

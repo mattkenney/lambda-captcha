@@ -4,25 +4,19 @@
   "private": true,
   "description": "Dependency-free image + audio CAPTCHA for server-rendered AWS Lambda apps, with a gate that puts a whole app behind it",
   "license": "AGPL-3.0-or-later",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "./dynamodb": {
-      "types": "./dist/dynamodb.d.ts",
-      "default": "./dist/dynamodb.js"
-    }
+    ".": "./src/index.ts",
+    "./dynamodb": "./src/dynamodb.ts"
   },
   "typesVersions": {
     "*": {
-      "dynamodb": ["dist/dynamodb.d.ts"]
+      "dynamodb": ["src/dynamodb.ts"]
     }
   },
   "files": [
-    "dist",
+    "src",
     "README.md",
     "LICENSE"
   ],
@@ -30,8 +24,6 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "prepare": "npm run build",
     "typecheck": "tsc --noEmit",
     "test": "node --require ts-node/register --test test/*.test.ts",
     "gen-clips": "scripts/gen-clips.sh"

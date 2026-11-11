@@ -178,13 +178,10 @@ on Lambda, because each concurrent container has its own memory.
 mark `@aws-sdk/*` external (`NodejsFunction` does this with
 `bundling.externalModules`).
 
-The build is CommonJS. Node's ESM can import it unbundled. To bundle it into an
-ESM handler (`index.mjs`) with esbuild, give the bundle a real `require`, or
-its `require("node:crypto")` throws "Dynamic require … is not supported":
-
-```js
-banner: { js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);" }
-```
+The package ships TypeScript source, with no compiled build, so the app has to
+bundle it. esbuild does that from `node_modules` with no configuration, into
+either an ES module or CommonJS handler (`NodejsFunction` uses esbuild too).
+Plain Node.js without a bundler can't load it.
 
 **CloudFront in front of the gate.** The behavior that routes to the Lambda
 must:
@@ -359,22 +356,25 @@ The pass cookie is `Secure`. Chrome and Firefox accept it from
 ```sh
 npm test            # node:test, via ts-node
 npm run typecheck
-npm run build       # dist/: CommonJS + .d.ts
 npm run gen-clips   # regenerate src/clips.ts (needs espeak-ng and python3)
 ```
 
 ## Installing
 
 The package is `private`, so it is not published to a registry. Install it from
-git, and npm builds `dist/` itself through the `prepare` script:
+git:
 
 ```sh
 npm install github:mattkenney/lambda-captcha
 ```
 
-Or from a local checkout, `npm install ../lambda-captcha`. npm links the
-directory rather than copying it, so run `npm install` here first: that builds
-`dist/` and installs the type definitions. Rebuild after changing the source.
+There is no build step, so no install script has to run, and it works with
+npm's `ignore-scripts` turned on. npm pins the dependency to the commit it
+installed: run `npm update lambda-captcha` to pick up newer ones.
+
+A TypeScript app type-checks the package's source along with its own. It
+compiles under `strict` with `noUnusedLocals` and `noUnusedParameters`.
+Options stricter than that may report errors in it.
 
 ## License
 
